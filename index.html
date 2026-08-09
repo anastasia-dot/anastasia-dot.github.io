@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ghost SPORT INSIDER</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#0a0d0a;
+    --bg-elev:#12160f;
+    --card:#151a13;
+    --card-border:#232b1e;
+    --line:#1e251a;
+    --text:#f2f5ef;
+    --text-dim:#9aa596;
+    --text-faint:#5f6a58;
+    --accent:#9df23e;
+    --accent-dim:#6ea62c;
+    --accent-glow:rgba(157,242,62,.18);
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --font-head:'Rajdhani','Segoe UI',system-ui,sans-serif;
+    --font-body:'Inter','Segoe UI',system-ui,sans-serif;
+  }
+  @font-face{
+    font-family:'Rajdhani';
+    src:local('Rajdhani');
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    height:100%;
+  }
+  body{
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(157,242,62,.06), transparent 60%),
+      var(--bg);
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:16px 18px 14px;
+    border-bottom:1px solid var(--line);
+    background:rgba(10,13,10,.85);
+    backdrop-filter:blur(8px);
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .back-btn{
+    width:34px;height:34px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--text-dim);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .back-btn:active{ transform:scale(.9); background:var(--card-border); }
+  .back-btn.hidden{ visibility:hidden; }
+  .topbar-title{ line-height:1.2; }
+  .topbar-title b{
+    font-family:var(--font-head);
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.02em;
+    display:block;
+  }
+  .topbar-title span{
+    font-size:11.5px;
+    color:var(--text-faint);
+  }
+
+  /* ---------- Screens ---------- */
+  .screen{
+    display:none;
+    padding:20px 18px 90px;
+    animation:enter .28s ease;
+  }
+  .screen.active{ display:block; }
+  @keyframes enter{
+    from{ opacity:0; transform:translateX(14px); }
+    to{ opacity:1; transform:translateX(0); }
+  }
+
+  /* ---------- Hero (home) ---------- */
+  .hero{
+    position:relative;
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    aspect-ratio:635/371;
+    margin-bottom:22px;
+    border:1px solid var(--card-border);
+    background:#0a0d0a;
+  }
+  .hero img.hero-img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center 30%;
+    display:block;
+  }
+  .hero .hero-shade{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(10,13,10,.05) 0%, rgba(10,13,10,0) 35%, rgba(10,13,10,.55) 100%);
+    pointer-events:none;
+  }
+  .hero-content{
+    position:absolute;
+    top:14px; left:16px;
+    z-index:2;
+  }
+  .brand-mark{
+    font-family:var(--font-head);
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:.3em;
+    color:var(--accent);
+    text-transform:uppercase;
+    background:rgba(10,13,10,.55);
+    border:1px solid rgba(157,242,62,.35);
+    border-radius:20px;
+    padding:4px 10px;
+    display:inline-block;
+    backdrop-filter:blur(4px);
+  }
+
+  /* ---------- Status card ---------- */
+  .status-row{
+    display:flex;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .status-card{
+    flex:1;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius-md);
+    padding:13px 14px;
+  }
+  .status-card .eyebrow{
+    display:flex; align-items:center; gap:6px;
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin-bottom:6px;
+  }
+  .status-card .value{
+    font-family:var(--font-head);
+    font-weight:600;
+    font-size:16px;
+  }
+  .status-card .value.muted{ color:var(--text-dim); }
+  .status-card .value.warn{ color:#e8b23e; }
+
+  /* ---------- Section label ---------- */
+  .section-label{
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 2px 12px;
+  }
+
+  /* ---------- Tariff list (home) ---------- */
+  .tariff-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .tariff-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    cursor:pointer;
+    transition:.15s;
+    position:relative;
+  }
+  .tariff-row:active{ transform:scale(.985); background:var(--bg-elev); }
+  .tariff-row.featured{
+    border-color:rgba(157,242,62,.4);
+    box-shadow:0 0 0 1px rgba(157,242,62,.12), 0 8px 24px -12px var(--accent-glow);
+  }
+  .tariff-left{ display:flex; align-items:center; gap:12px; }
+  .tariff-days{
+    font-family:var(--font-head);
+    font-weight:700;
+    font-size:17px;
+  }
+  .tariff-desc{
+    font-size:11.5px;
+    color:var(--text-faint);
+    margin-top:2px;
+  }
+  .tariff-right{ display:flex; align-items:center; gap:8px; }
+  .tariff-price{
+    font-family:var(--font-head);
+    font-weight:700;
+    font-size:16px;
+  }
+  .tariff-badge{
+    font-size:10.5px;
+    font-weight:700;
+    color:#0a0d0a;
+    background:var(--accent);
+    border-radius:20px;
+    padding:2px 7px;
+  }
+  .chev{ color:var(--text-faint); }
+
+  /* ---------- About entry button ---------- */
+  .about-entry{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    cursor:pointer;
+  }
+  .about-entry .label{ display:flex; align-items:center; gap:10px; font-size:14px; font-weight:600; }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    width:100%;
+    border:none;
+    border-radius:var(--radius-md);
+    padding:15px;
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:14.5px;
+    letter-spacing:.01em;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{
+    background:linear-gradient(180deg, #a8f24a, #8bd633);
+    color:#0a0d0a;
+    box-shadow:0 8px 20px -8px rgba(157,242,62,.45);
+  }
+  .btn-secondary{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    color:var(--text);
+    margin-top:10px;
+  }
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--card-border);
+    color:var(--text-dim);
+  }
+
+  /* ---------- Tariff detail screen ---------- */
+  .detail-hero{
+    position:relative;
+    border-radius:var(--radius-lg);
+    height:150px;
+    overflow:hidden;
+    margin-bottom:22px;
+    border:1px solid var(--card-border);
+    background:linear-gradient(135deg, #10140d 0%, #0a0d0a 70%);
+  }
+  .detail-hero .ball{ position:absolute; right:14px; top:50%; transform:translateY(-50%); opacity:.95; }
+  .detail-hero-content{ position:relative; z-index:2; padding:22px 22px; }
+  .detail-hero .days{
+    font-family:var(--font-head); font-weight:700; font-size:28px; color:var(--accent);
+    line-height:1;
+  }
+  .detail-hero .label{
+    margin-top:6px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint);
+  }
+
+  .info-block{ margin-bottom:18px; }
+  .info-block .k{
+    font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); margin-bottom:6px;
+  }
+  .info-block .v{
+    font-family:var(--font-head); font-weight:700; font-size:26px;
+  }
+  .divider{ height:1px; background:var(--line); margin:18px 0; }
+
+  .feature-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .feature-item{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--text); }
+  .feature-item .dot{
+    width:20px; height:20px; border-radius:50%;
+    background:var(--accent-glow);
+    color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; flex-shrink:0;
+  }
+
+  .note-box{
+    display:flex; gap:10px; align-items:flex-start;
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px 13px;
+    font-size:12px;
+    color:var(--text-dim);
+    margin-bottom:22px;
+  }
+  .note-box .ic{ color:var(--accent); flex-shrink:0; margin-top:1px; }
+
+  /* ---------- About screen ---------- */
+  .sport-row{
+    display:flex; justify-content:space-between;
+    margin-bottom:26px;
+  }
+  .sport-item{ display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; }
+  .sport-icon{
+    width:52px; height:52px; border-radius:50%;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent);
+  }
+  .sport-item span{ font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); }
+
+  .about-heading{
+    font-family:var(--font-head); font-weight:700; font-size:20px; color:var(--accent);
+    margin-bottom:14px;
+  }
+  .about-text p{
+    font-size:13.5px; line-height:1.65; color:var(--text-dim); margin-bottom:14px;
+  }
+  .about-text p b{ color:var(--text); }
+
+  /* ---------- Payment screen ---------- */
+  .pay-wrap{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    padding-top:20px;
+  }
+  .lock-orb{
+    width:120px; height:120px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(60% 60% at 50% 40%, rgba(157,242,62,.14), transparent 70%);
+    border:1px solid rgba(157,242,62,.25);
+    margin-bottom:26px;
+    position:relative;
+  }
+  .lock-orb::before,.lock-orb::after{
+    content:''; position:absolute; border-radius:50%; border:1px solid rgba(157,242,62,.15);
+  }
+  .lock-orb::before{ width:150px; height:150px; }
+  .lock-orb::after{ width:180px; height:180px; }
+  .pay-title{ font-family:var(--font-head); font-weight:700; font-size:20px; margin-bottom:20px; }
+  .pay-dashes{ display:flex; gap:6px; margin-bottom:20px; }
+  .pay-dashes span{ width:26px; height:3px; border-radius:2px; background:var(--accent); opacity:.5; }
+  .pay-dashes span:nth-child(2){ opacity:.8; }
+  .pay-dashes span:nth-child(3){ opacity:1; }
+  .pay-text{ font-size:14px; line-height:1.7; color:var(--text-dim); max-width:280px; margin-bottom:6px; }
+  .pay-thanks{ font-size:14px; color:var(--text); margin-top:14px; margin-bottom:36px; }
+
+  .bottom-fixed{ position:sticky; bottom:0; padding-top:8px; }
+
+  .plan-summary{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+    margin-bottom:16px;
+    font-size:13px;
+  }
+  .plan-summary .l{ color:var(--text-faint); }
+  .plan-summary .r{ font-weight:700; color:var(--accent); }
+</style>
+</head>
+<body>
+<div id="app">
+
+
+  <!-- ============ HOME ============ -->
+  <section class="screen active" id="screen-home">
+    <div class="hero">
+      <img class="hero-img" src="hero.png" alt="Sport Insider">
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <div class="brand-mark">Ghost</div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-card">
+        <div class="eyebrow">Статус</div>
+        <div class="value muted">Гость</div>
+      </div>
+      <div class="status-card">
+        <div class="eyebrow">Подписка</div>
+        <div class="value warn">Не активна</div>
+      </div>
+    </div>
+
+    <div class="section-label">Выберите подходящий тариф</div>
+    <div class="tariff-list">
+      <div class="tariff-row" onclick="openTariff('basic')">
+        <div class="tariff-left">
+          <div>
+            <div class="tariff-days">30 дней</div>
+            <div class="tariff-desc">Доступ ко всем прогнозам и аналитике</div>
+          </div>
+        </div>
+        <div class="tariff-right">
+          <div class="tariff-price">500 ₽</div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <div class="tariff-row" onclick="openTariff('extended')">
+        <div class="tariff-left">
+          <div>
+            <div class="tariff-days">60 дней</div>
+            <div class="tariff-desc">Доступ ко всем прогнозам и аналитике</div>
+          </div>
+        </div>
+        <div class="tariff-right">
+          <span class="tariff-badge">-10%</span>
+          <div class="tariff-price">900 ₽</div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <div class="tariff-row featured" onclick="openTariff('vip')">
+        <div class="tariff-left">
+          <div>
+            <div class="tariff-days">180 дней</div>
+            <div class="tariff-desc">Доступ ко всем прогнозам и аналитике</div>
+          </div>
+        </div>
+        <div class="tariff-right">
+          <span class="tariff-badge">-20%</span>
+          <div class="tariff-price">1 600 ₽</div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-entry" onclick="showScreen('about')">
+      <div class="label">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5.5M12 8v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        О сервисе
+      </div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </section>
+
+  <!-- ============ TARIFF DETAIL ============ -->
+  <section class="screen" id="screen-tariff">
+    <div class="detail-hero">
+      <svg class="ball" width="90" height="90" viewBox="0 0 24 24" fill="none" opacity=".9">
+        <circle cx="12" cy="12" r="10" stroke="#9df23e" stroke-width="1.4"/>
+        <path d="M12 6l3 2.2-1.1 3.6h-3.8L9 8.2 12 6z" stroke="#9df23e" stroke-width="1.2"/>
+        <path d="M12 2v4M12 22v-4M2 12h4M22 12h-4M4.9 4.9l2.8 2.8M19.1 4.9l-2.8 2.8M4.9 19.1l2.8-2.8M19.1 19.1l-2.8-2.8" stroke="#9df23e" stroke-width="1" opacity=".5"/>
+      </svg>
+      <div class="detail-hero-content">
+        <div class="days" id="d-days">30 дней</div>
+        <div class="label" id="d-label">Доступ</div>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div class="k">Стоимость</div>
+      <div class="v" id="d-price">500 ₽</div>
+    </div>
+    <div class="info-block">
+      <div class="k">Срок доступа</div>
+      <div class="v" id="d-duration" style="font-size:20px; color:var(--text-dim);">30 дней</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-label">В подписку входит</div>
+    <div class="feature-list">
+      <div class="feature-item"><span class="dot">✓</span> Ежедневные прогнозы</div>
+      <div class="feature-item"><span class="dot">✓</span> Аналитика матчей</div>
+      <div class="feature-item"><span class="dot">✓</span> Уведомления о новых прогнозах</div>
+    </div>
+
+    <div class="note-box">
+      <span class="ic">🛈</span>
+      <span>После оплаты подписка активируется автоматически.</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="goToPayment()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M2 9h20" stroke="currentColor" stroke-width="1.8"/></svg>
+      Оформить подписку
+    </button>
+    <button class="btn btn-secondary" onclick="showScreen('home')">
+      ← Назад
+    </button>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="screen" id="screen-about">
+    <div class="sport-row">
+      <div class="sport-item">
+        <div class="sport-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 5l3.4 2.5-1.3 4h-4.2L8.6 7.5 12 5z" stroke="currentColor" stroke-width="1.3"/></svg>
+        </div>
+        <span>Футбол</span>
+      </div>
+      <div class="sport-item">
+        <div class="sport-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="15" width="9" height="4" rx="1" transform="rotate(-20 4 15)" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="7" r="2.4" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <span>Хоккей</span>
+      </div>
+      <div class="sport-item">
+        <div class="sport-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M3 12h18M12 3v18M6 6c3 3 9 3 12 0M6 18c3-3 9-3 12 0" stroke="currentColor" stroke-width="1.2"/></svg>
+        </div>
+        <span>Баскетбол</span>
+      </div>
+      <div class="sport-item">
+        <div class="sport-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M6 6c3.5 2 3.5 10 0 12M18 6c-3.5 2-3.5 10 0 12" stroke="currentColor" stroke-width="1.2"/></svg>
+        </div>
+        <span>Теннис</span>
+      </div>
+    </div>
+
+    <div class="about-heading">О сервисе</div>
+    <div class="about-text">
+      <p><b>Ghost SPORT INSIDER</b> — закрытый сервис спортивной аналитики.</p>
+      <p>Каждый день публикуются прогнозы на топовые события из мира спорта: футбол, хоккей, баскетбол и теннис.</p>
+      <p>После оформления подписки доступ открывается автоматически.</p>
+    </div>
+
+    <button class="btn btn-primary" onclick="showScreen('home')">
+      💎 Выбрать тариф
+    </button>
+  </section>
+
+  <!-- ============ PAYMENT ============ -->
+  <section class="screen" id="screen-payment">
+    <div class="pay-wrap">
+      <div class="lock-orb">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#9df23e" stroke-width="1.8"/><path d="M8 11V8a4 4 0 018 0v3" stroke="#9df23e" stroke-width="1.8"/></svg>
+      </div>
+      <div class="pay-title">Оплата подписки</div>
+      <div class="pay-dashes"><span></span><span></span><span></span></div>
+
+      <div class="plan-summary" id="paySummary">
+        
+        <span class="r">30 дней · 500 ₽</span>
+      </div>
+
+      <p class="pay-text">Подключение платёжной системы находится на завершающем этапе.</p>
+      <p class="pay-thanks">Спасибо за ожидание ❤️</p>
+    </div>
+
+    <button class="btn btn-primary" onclick="showScreen('home')">
+      🏠 Главное меню
+    </button>
+  </section>
+
+</div>
+
+<script>
+  const tg = window.Telegram ? window.Telegram.WebApp : null;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor && tg.setHeaderColor('#0a0d0a');
+    tg.setBackgroundColor && tg.setBackgroundColor('#0a0d0a');
+  }
+
+  const TARIFFS = {
+    basic:    { title: "🥉 Доступ на 30 дней",  days: "30 дней",  price: "500 ₽",   short: "30 дней · 500 ₽" },
+    extended: { title: "🥈 Доступ на 60 дней",  days: "60 дней",  price: "900 ₽",   short: "60 дней · 900 ₽" },
+    vip:      { title: "🥇 Доступ на 180 дней", days: "180 дней", price: "1 600 ₽", short: "180 дней · 1 600 ₽" },
+  };
+
+  let currentTariff = 'basic';
+  let history = ['home'];
+
+  function showScreen(name, push = true) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.getElementById('backBtn').classList.toggle('hidden', name === 'home');
+    document.getElementById('topbarSub').textContent = name === 'home' ? 'bot' : 'bot';
+    if (push) {
+      if (history[history.length - 1] !== name) history.push(name);
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function goBack() {
+    if (history.length > 1) {
+      history.pop();
+      showScreen(history[history.length - 1], false);
+    } else {
+      showScreen('home', false);
+    }
+  }
+
+  function openTariff(id) {
+    currentTariff = id;
+    const t = TARIFFS[id];
+    document.getElementById('d-days').textContent = t.days;
+    document.getElementById('d-label').textContent = 'Доступ';
+    document.getElementById('d-price').textContent = t.price;
+    document.getElementById('d-duration').textContent = t.days;
+    showScreen('tariff');
+  }
+
+  function goToPayment() {
+    const t = TARIFFS[currentTariff];
+    document.getElementById('paySummary').querySelector('.r').textContent = t.short;
+    showScreen('payment');
+
+    // Optional: notify the bot backend which tariff was selected
+    if (tg && tg.sendData) {
+      try {
+        tg.sendData(JSON.stringify({ action: 'select_tariff', tariff: currentTariff }));
+      } catch (e) {}
+    }
+  }
+</script>
+</body>
+</html>
